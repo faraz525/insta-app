@@ -13,6 +13,40 @@ dashboardJs.get("/dashboard.js", (c) => {
     var resultEl = document.getElementById('result');
     var charCount = document.getElementById('char-count');
 
+    // Wait for ClerkJS to load and initialize
+    async function waitForClerk() {
+      if (window.Clerk && window.Clerk.loaded) return;
+      if (window.Clerk) {
+        await window.Clerk.load();
+        return;
+      }
+      // Wait for script to load
+      await new Promise(function(resolve) {
+        var check = setInterval(function() {
+          if (window.Clerk) { clearInterval(check); resolve(); }
+        }, 100);
+      });
+      await window.Clerk.load();
+    }
+
+    // Get Clerk session token for authenticated fetch calls
+    async function getToken() {
+      await waitForClerk();
+      if (window.Clerk && window.Clerk.session) {
+        return window.Clerk.session.getToken();
+      }
+      return null;
+    }
+
+    async function authFetch(url, options) {
+      var token = await getToken();
+      if (!options) options = {};
+      if (!options.headers) options.headers = {};
+      if (token) options.headers['Authorization'] = 'Bearer ' + token;
+      options.credentials = 'same-origin';
+      return fetch(url, options);
+    }
+
     if (promptEl && charCount) {
       promptEl.addEventListener('input', function() {
         charCount.textContent = promptEl.value.length + ' / 500';
@@ -34,10 +68,9 @@ dashboardJs.get("/dashboard.js", (c) => {
         resultEl.textContent = '';
 
         try {
-          var res = await fetch('/generate', {
+          var res = await authFetch('/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
             body: JSON.stringify({ prompt: prompt }),
           });
 
@@ -87,7 +120,7 @@ dashboardJs.get("/dashboard.js", (c) => {
         if (!confirm('Delete this app?')) return;
 
         try {
-          var res = await fetch('/delete-app/' + id, { method: 'POST', credentials: 'same-origin' });
+          var res = await authFetch('/delete-app/' + id, { method: 'POST' });
           if (res.ok) {
             var card = btn.closest('.app-card');
             card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';

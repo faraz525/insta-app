@@ -455,6 +455,12 @@ dashboard.get("/dashboard", async (c) => {
           </div>
         </div>
 
+        <script
+          async
+          crossOrigin="anonymous"
+          data-clerk-publishable-key={c.env.CLERK_PUBLISHABLE_KEY}
+          src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js"
+        ></script>
         <script src="/dashboard.js"></script>
       </body>
     </html>
