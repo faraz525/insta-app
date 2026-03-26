@@ -17,9 +17,19 @@ Rules:
 Respond with ONLY the code. No explanations, no markdown fences, no comments outside the code.`
 
 export function stripMarkdownFences(code: string): string {
-  const fencePattern = /^```(?:\w+)?\n([\s\S]*?)\n```$/
-  const match = code.trim().match(fencePattern)
-  return match ? match[1].trim() : code.trim()
+  const trimmed = code.trim()
+  // Match fenced code block anywhere in the string (not just whole-string match)
+  const fencePattern = /```(?:\w+)?\n([\s\S]*?)```/
+  const match = trimmed.match(fencePattern)
+  if (match) {
+    return match[1].trim()
+  }
+  // Also strip leading text before "export" if present
+  const exportIndex = trimmed.indexOf("export default")
+  if (exportIndex > 0) {
+    return trimmed.slice(exportIndex).trim()
+  }
+  return trimmed
 }
 
 interface ValidationResult {

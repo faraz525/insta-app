@@ -41,7 +41,8 @@ generate.post("/generate", async (c) => {
   const result = await generateAppCode(c.env.AI, prompt)
 
   if (!result.success) {
-    return c.json({ error: "Generation failed — try rephrasing your prompt" }, 422)
+    console.error("Generation failed:", result.error)
+    return c.json({ error: "Generation failed: " + result.error }, 422)
   }
 
   const id = generateId()
