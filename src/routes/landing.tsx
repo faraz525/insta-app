@@ -77,7 +77,7 @@ landing.get("/", (c) => {
         <div class="container">
           <h1>InstaApp</h1>
           <p class="tagline">Describe an app. Get a live URL.</p>
-          <a href="/dashboard" class="cta">Get Started</a>
+          <a href="/sign-in" class="cta">Get Started</a>
           <div class="examples">
             <h3>Try something like...</h3>
             <div class="example">"A trivia game about space with 5 questions"</div>
