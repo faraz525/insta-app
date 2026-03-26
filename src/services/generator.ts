@@ -30,6 +30,7 @@ Rules:
 - Do NOT import any external modules
 - Make it mobile-responsive and visually polished
 - If you need external data, use fetch() to public APIs inside the client-side script
+- CRITICAL: The HTML is inside a template literal (backticks). In the client-side <script>, you MUST NOT use template literals or dollar-brace expressions. Use string concatenation with + instead. For example use: hours + ':' + minutes instead of template literals.
 
 Respond with ONLY the code. No explanations, no markdown.`
 

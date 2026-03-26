@@ -23,6 +23,7 @@ export function applyAuth(app: Hono<{ Bindings: Env }>) {
 
   app.use("/generate", async (c, next) => {
     const auth = getAuth(c)
+    console.error("Generate auth state:", JSON.stringify({ userId: auth?.userId, sessionId: auth?.sessionId, status: auth ? "present" : "null" }))
     if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401)
     await next()
   })
