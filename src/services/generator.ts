@@ -64,6 +64,19 @@ export function validateCode(code: string): ValidationResult {
   if (!code.includes("fetch")) {
     return { valid: false, error: "Code must contain a fetch handler" }
   }
+
+  // Check for truncated output — count braces and backticks
+  const openBraces = (code.match(/{/g) || []).length
+  const closeBraces = (code.match(/}/g) || []).length
+  if (openBraces !== closeBraces) {
+    return { valid: false, error: "Code appears truncated (mismatched braces). Try a simpler prompt." }
+  }
+
+  const backticks = (code.match(/`/g) || []).length
+  if (backticks % 2 !== 0) {
+    return { valid: false, error: "Code appears truncated (unclosed template literal). Try a simpler prompt." }
+  }
+
   return { valid: true }
 }
 
@@ -80,6 +93,7 @@ export async function generateAppCode(ai: Ai, prompt: string): Promise<GenerateR
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: prompt },
         ],
+        max_tokens: 4096,
       }
     )
 
