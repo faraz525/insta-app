@@ -21,7 +21,7 @@ export async function getAppById(db: D1Database, id: string): Promise<AppRecord 
 
 export async function getAppsByUser(db: D1Database, userId: string): Promise<AppRecord[]> {
   const { results } = await db
-    .prepare("SELECT * FROM apps WHERE user_id = ? ORDER BY created_at DESC")
+    .prepare("SELECT id, user_id, prompt, created_at, updated_at FROM apps WHERE user_id = ? ORDER BY created_at DESC")
     .bind(userId)
     .all<AppRecord>()
   return results
