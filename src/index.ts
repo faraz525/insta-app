@@ -9,6 +9,8 @@ import generate from "./routes/generate"
 import appView from "./routes/app-view"
 import live from "./routes/live"
 import { OutboundProxy } from "./services/outbound-proxy"
+import { getAuth } from "@hono/clerk-auth"
+import { deleteApp } from "./db/apps"
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -21,6 +23,14 @@ app.route("/", dashboardJs)
 app.route("/", generate)
 app.route("/", appView)
 app.route("/", live)
+
+// Delete handler registered directly on main app to avoid sub-router method matching issues
+app.delete("/app/:id", async (c) => {
+  const auth = getAuth(c)
+  if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401)
+  await deleteApp(c.env.DB, c.req.param("id"), auth.userId)
+  return c.json({ success: true })
+})
 
 export default app
 export { OutboundProxy }
