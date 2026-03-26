@@ -12,6 +12,8 @@ live.get("/live/:id", async (c) => {
     return response
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error"
+    const stack = err instanceof Error ? err.stack : ""
+    console.error("Live app error for", appId, ":", message, stack)
 
     if (message === "App not found") {
       return c.html(
