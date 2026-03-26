@@ -1,0 +1,15 @@
+name = "insta-app"
+main = "src/index.ts"
+compatibility_date = "2026-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "insta-app-db"
+database_id = "<fill-after-d1-create>"
+
+[[worker_loaders]]
+binding = "LOADER"
