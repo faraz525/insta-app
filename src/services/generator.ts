@@ -1,20 +1,37 @@
 const MAX_CODE_SIZE = 50 * 1024
 
-const SYSTEM_PROMPT = `You are a Cloudflare Worker code generator. Given a user's description of a micro web app, generate a single, self-contained Cloudflare Worker.
+const SYSTEM_PROMPT = `You are a Cloudflare Worker code generator. Generate a single self-contained Cloudflare Worker that serves a web app.
+
+Your output MUST follow this exact structure:
+
+export default {
+  async fetch(request) {
+    const html = \`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Title</title>
+  <style>/* your CSS here */</style>
+</head>
+<body>
+  <!-- your HTML here -->
+  <script>/* your JS here */</script>
+</body>
+</html>\`;
+    return new Response(html, { headers: { "Content-Type": "text/html" } });
+  }
+};
 
 Rules:
-- Export a default object with a fetch(request) handler
-- Return an HTML Response with inline CSS and inline JavaScript
-- Do NOT import any external modules or npm packages
-- Do NOT use any Cloudflare bindings (no env.KV, env.D1, etc.)
-- The app must be fully self-contained in one file
-- Use modern, clean CSS (flexbox, grid, custom properties)
-- Make it mobile-responsive
-- Make it visually polished with good typography, spacing, and color
-- If the app needs external data, use fetch() to public APIs
-- Always include a <meta name="viewport"> tag for mobile
+- ALWAYS use "export default { async fetch(request) { ... } }" exactly as shown above
+- All CSS must be inline in a <style> tag
+- All JavaScript must be inline in a <script> tag
+- Do NOT import any external modules
+- Make it mobile-responsive and visually polished
+- If you need external data, use fetch() to public APIs inside the client-side script
 
-Respond with ONLY the code. No explanations, no markdown fences, no comments outside the code.`
+Respond with ONLY the code. No explanations, no markdown.`
 
 export function stripMarkdownFences(code: string): string {
   const trimmed = code.trim()
@@ -67,10 +84,18 @@ export async function generateAppCode(ai: Ai, prompt: string): Promise<GenerateR
     )
 
     const rawCode = typeof response === "string" ? response : (response as { response?: string }).response ?? ""
-    const code = stripMarkdownFences(rawCode)
+    let code = stripMarkdownFences(rawCode)
+
+    // If AI returned HTML without a Worker wrapper, wrap it automatically
+    if (!code.includes("export default") && (code.includes("<html") || code.includes("<!DOCTYPE") || code.includes("<body"))) {
+      const escaped = code.replace(/`/g, "\\`").replace(/\$/g, "\\$")
+      code = `export default {\n  async fetch(request) {\n    const html = \`${escaped}\`;\n    return new Response(html, { headers: { "Content-Type": "text/html" } });\n  }\n};`
+    }
+
     const validation = validateCode(code)
 
     if (!validation.valid) {
+      console.error("Validation failed. Raw AI output (first 500 chars):", rawCode.slice(0, 500))
       return { success: false, error: validation.error ?? "Invalid code generated" }
     }
 
