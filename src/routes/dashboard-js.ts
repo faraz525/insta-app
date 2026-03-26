@@ -87,7 +87,7 @@ dashboardJs.get("/dashboard.js", (c) => {
         if (!confirm('Delete this app?')) return;
 
         try {
-          var res = await fetch('/app/' + id, { method: 'DELETE' });
+          var res = await fetch('/app/' + id, { method: 'DELETE', credentials: 'same-origin' });
           if (res.ok) {
             var card = btn.closest('.app-card');
             card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
