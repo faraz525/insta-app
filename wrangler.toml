@@ -9,7 +9,9 @@ binding = "AI"
 [[d1_databases]]
 binding = "DB"
 database_name = "insta-app-db"
-database_id = "<fill-after-d1-create>"
+database_id = "da040266-d108-456b-8223-90263b359f8b"
 
-[[worker_loaders]]
-binding = "LOADER"
+# Dynamic Workers (worker_loaders) requires Workers Paid plan + beta access
+# Uncomment once enabled on your account:
+# [[worker_loaders]]
+# binding = "LOADER"
