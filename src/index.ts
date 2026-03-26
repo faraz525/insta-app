@@ -10,6 +10,7 @@ import appView from "./routes/app-view"
 import live from "./routes/live"
 import { OutboundProxy } from "./services/outbound-proxy"
 import { deleteApp } from "./db/apps"
+import { clerkMiddleware, getAuth } from "@hono/clerk-auth"
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -23,18 +24,9 @@ app.route("/", generate)
 app.route("/", appView)
 app.route("/", live)
 
-// Delete handler: uses Clerk backend SDK directly to avoid middleware handshake redirect
-app.delete("/app/:id", async (c) => {
-  const { createClerkClient } = await import("@clerk/backend")
-  const clerk = createClerkClient({
-    secretKey: c.env.CLERK_SECRET_KEY,
-    publishableKey: c.env.CLERK_PUBLISHABLE_KEY,
-  })
-  const requestState = await clerk.authenticateRequest(c.req.raw, {
-    secretKey: c.env.CLERK_SECRET_KEY,
-    publishableKey: c.env.CLERK_PUBLISHABLE_KEY,
-  })
-  const auth = requestState.toAuth()
+// Delete via POST to avoid Clerk middleware issues with DELETE method
+app.post("/delete-app/:id", clerkMiddleware(), async (c) => {
+  const auth = getAuth(c)
   if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401)
   await deleteApp(c.env.DB, c.req.param("id"), auth.userId)
   return c.json({ success: true })
